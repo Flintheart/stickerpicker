@@ -1,7 +1,8 @@
 {
   "packs": [
     "Nate38214NaL.json",
-    "FlintsStickersByKarpour.json"
+    "FlintsStickersByKarpour.json",
+    "flintsStickers.json"
   ],
   "homeserver_url": "https://matrix.org"
 }
