@@ -5,7 +5,8 @@
     "flintsStickers.json",
     "natesStickers.json",
     "NathanielCat.json",
-    "flintsEmotes.json"
+    "flintsEmotes.json",
+    "dennicat.json"
   ],
   "homeserver_url": "https://matrix.org"
 }
