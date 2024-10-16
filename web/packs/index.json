@@ -6,7 +6,14 @@
     "natesStickers.json",
     "NathanielCat.json",
     "flintsEmotes.json",
-    "dennicat.json"
+    "dennicat.json",
+    "FlintTheCat.json",
+    "Meepsalot.json",
+    "LINE_Splatoon.json",
+    "HugsByPupSonar.json",
+    "RedPandaNL.json",
+    "RedPanda2NL.json",
+    "NyanPizzaJupiter.json"
   ],
   "homeserver_url": "https://matrix.org"
 }
