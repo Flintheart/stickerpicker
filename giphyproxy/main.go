@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"time"
 
 	"go.mau.fi/util/exerrors"
@@ -33,12 +34,16 @@ import (
 type Config struct {
 	mediaproxy.BasicConfig  `yaml:",inline"`
 	mediaproxy.ServerConfig `yaml:",inline"`
+	Destination             string `yaml:"destination"`
+	SplitIdx                []int  `yaml:"split_idx"`
 }
 
 var configPath = flag.String("config", "config.yaml", "config file path")
 var generateServerKey = flag.Bool("generate-key", false, "generate a new server key and exit")
 
 var giphyIDRegex = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+var destination = "https://i.giphy.com/%s.webp"
+var splitIdx []int
 
 func main() {
 	flag.Parse()
@@ -49,13 +54,18 @@ func main() {
 		var cfg Config
 		exerrors.PanicIfNotNil(yaml.Unmarshal(cfgFile, &cfg))
 		mp := exerrors.Must(mediaproxy.NewFromConfig(cfg.BasicConfig, getMedia))
-		mp.KeyServer.Version.Name = "maunium-stickerpicker giphy proxy"
-		mp.ForceProxyLegacyFederation = true
+		mp.KeyServer.Version.Name = "mautrix-go + maunium-stickerpicker giphy proxy"
+		if cfg.Destination != "" {
+			destination = cfg.Destination
+			splitIdx = cfg.SplitIdx
+			slices.Sort(splitIdx)
+			slices.Reverse(splitIdx)
+		}
 		exerrors.PanicIfNotNil(mp.Listen(cfg.ServerConfig))
 	}
 }
 
-func getMedia(_ context.Context, id string) (response mediaproxy.GetMediaResponse, err error) {
+func getMedia(_ context.Context, id string, _ map[string]string) (response mediaproxy.GetMediaResponse, err error) {
 	// This is not related to giphy, but random cats are always fun
 	if id == "cat" {
 		return &mediaproxy.GetMediaResponseURL{
@@ -66,7 +76,13 @@ func getMedia(_ context.Context, id string) (response mediaproxy.GetMediaRespons
 	if !giphyIDRegex.MatchString(id) {
 		return nil, mediaproxy.ErrInvalidMediaIDSyntax
 	}
+	for _, idx := range splitIdx {
+		if idx >= len(id) {
+			return nil, mediaproxy.ErrInvalidMediaIDSyntax
+		}
+		id = id[:idx] + "/" + id[idx:]
+	}
 	return &mediaproxy.GetMediaResponseURL{
-		URL: fmt.Sprintf("https://i.giphy.com/%s.webp", id),
+		URL: fmt.Sprintf(destination, id),
 	}, nil
 }
